@@ -147,24 +147,49 @@ class LeafNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
-
-        return null;
+        if (keys.contain(key)) {
+            return Optional.of(LeafNode.fromBytes(this.metadata, this.bufferManager, this.treeContext, this.pageNum));
+            }
+        else:
+            return Optional.empty(); 
     }
 
     // See BPlusNode.getLeftmostLeaf.
     @Override
     public LeafNode getLeftmostLeaf() {
         // TODO(proj2): implement
-
-        return null;
+        return Optional.of(LeafNode.fromBytes(this.metadata, this.bufferManager, this.treeContext, this.pageNum));
     }
 
     // See BPlusNode.put.
     @Override
     public Optional<Pair<DataBox, Long>> put(DataBox key, RecordId rid) {
         // TODO(proj2): implement
+        order = this.metadata.getOrder()
+        if (key < keys.get(0)) {
+            keys.add(0, key)
+            rids.add(0, rid)
+        }
+        for (int i = 0; i < keys.size()-1; i++) {
+            if (key >= keys.get(i) && key <= keys.get(i+1)) {
+                keys.add(i, key)
+                rids.add(i, rid)
+            }
+        }
+        if (key >= keys.get(keys.size() - 1)) {
+            //Add to list
+            keys.add(keys.size(), key)
+            rids.add(keys.size(), rid)
 
-        return Optional.empty();
+        }
+        if (keys.size() > order) {
+            l1Keys = keys.subList(0, order)
+            l1Rids = rids.subList(0, order)
+            l2Keys = keys.subList(order, keys.size() + 1)
+            l2Rids = rids.subList(order, rids.size() + 1)
+            return (l2Keys.get(0), l2Rids.get(0))
+        }
+    return Optional.empty();
     }
 
     // See BPlusNode.bulkLoad.
@@ -180,8 +205,16 @@ class LeafNode extends BPlusNode {
     @Override
     public void remove(DataBox key) {
         // TODO(proj2): implement
-
-        return;
+        if (keys.contain(key)) {
+            keys.remove(key);
+            rids.remove(rid);
+            sync()
+            return;
+        }
+        else {
+            sync()
+            return; 
+        }
     }
 
     // Iterators ///////////////////////////////////////////////////////////////

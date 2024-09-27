@@ -81,8 +81,19 @@ class InnerNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
+        if (children.isEmpty()):
+            return LeafNode.get(key); 
+        else:
+            int childIndex = numLessThanEqual(key, keys)
+            getChild(childIndex).get(key)
+        return Optional.empty();
+    }
 
-        return null;
+    public LeafNode helper(DataBox key, ArrayList<>(keys), int i) {
+        if (key < keys.get(i)) {
+            
+        }
+
     }
 
     // See BPlusNode.getLeftmostLeaf.
@@ -90,16 +101,48 @@ class InnerNode extends BPlusNode {
     public LeafNode getLeftmostLeaf() {
         assert(children.size() > 0);
         // TODO(proj2): implement
-
-        return null;
+        if (children.isEmpty()) {
+            return LeafNode.getLeftmostLeaf()
+        } else {
+            return getChild(0).getLeftmostLeaf()
+        }
+        return Optional.empty();
     }
 
     // See BPlusNode.put.
     @Override
     public Optional<Pair<DataBox, Long>> put(DataBox key, RecordId rid) {
         // TODO(proj2): implement
+        int childIndex = numLessThanEqual(key, keys)
+        oflow = getChild(childIndex).put(key, rid)
+        if !(oflow == Optional.empty()) {
+            order = this.metadata.getOrder()
+            if (key < keys.get(0)) {
+                keys.add(0, key)
+                rids.add(0, rid)
+            }
+            for (int i = 0; i < keys.size()-1; i++) {
+                if (key >= keys.get(i) && key <= keys.get(i+1)) {
+                    keys.add(i, key)
+                    rids.add(i, rid)
+                }
+            }
+            if (key >= keys.get(keys.size() - 1)) {
+                //Add to list
+                keys.add(keys.size(), key)
+                rids.add(keys.size(), rid)
 
-        return Optional.empty();
+            }
+            if (keys.size() > order) {
+                l1Keys = keys.subList(0, order)
+                l1Rids = rids.subList(0, order)
+                l2Keys = keys.subList(order + 1, keys.size() + 1)
+                l2Rids = rids.subList(order + 1, rids.size() + 1)
+                return (keys.get(order), rids.get(order))
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     // See BPlusNode.bulkLoad.
@@ -115,8 +158,12 @@ class InnerNode extends BPlusNode {
     @Override
     public void remove(DataBox key) {
         // TODO(proj2): implement
-
-        return;
+        if (children.isEmpty()):
+            LeafNode.remove(key); 
+        else:
+            int childIndex = numLessThanEqual(key, keys)
+            getChild(childIndex).remove(key)
+            sync()
     }
 
     // Helpers /////////////////////////////////////////////////////////////////

@@ -44,7 +44,6 @@ abstract class BPlusNode {
      * actually contain 4.
      */
     public abstract LeafNode get(DataBox key);
-
     /**
      * n.getLeftmostLeaf() returns the leftmost leaf in the subtree rooted by n.
      * In the example above, inner.getLeftmostLeaf() would return leaf0, and

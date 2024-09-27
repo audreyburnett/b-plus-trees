@@ -146,8 +146,8 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
-
-        return Optional.empty();
+        nodeFound = root.get(key)
+        return Optional.of(RecordId(nodeFound.pageNum, nodeFound.entryNum));
     }
 
     /**
@@ -200,10 +200,12 @@ public class BPlusTree {
     public Iterator<RecordId> scanAll() {
         // TODO(proj4_integration): Update the following line
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
-
+        int currentIndex = 0;
+        
         // TODO(proj2): Return a BPlusTreeIterator.
 
         return Collections.emptyIterator();
+
     }
 
     /**
@@ -233,7 +235,17 @@ public class BPlusTree {
         typecheck(key);
         // TODO(proj4_integration): Update the following line
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
-
+        currNode = root.get(key);
+        numKey = key;
+        while(currNode == Optional.empty()) {
+            numKey++;
+            currNode = currNode.get(numKey);
+        }
+        while(currNode)
+        BPlusTreeIterator<> iter = new BPlusTreeIterator();
+        iter.currNode = currNode
+        return BPlusTreeIterator()
+        
         // TODO(proj2): Return a BPlusTreeIterator.
 
         return Collections.emptyIterator();
@@ -257,8 +269,39 @@ public class BPlusTree {
         // Note: You should NOT update the root variable directly.
         // Use the provided updateRoot() helper method to change
         // the tree's root if the old root splits.
+        int childIndex = numLessThanEqual(key, keys)
+        oflow = getChild(childIndex).put(key, rid)
+        if !(oflow == Optional.empty()) {
+            order = this.metadata.getOrder()
+            if (key < keys.get(0)) {
+                keys.add(0, key)
+                rids.add(0, rid)
+            }
+            for (int i = 0; i < keys.size()-1; i++) {
+                if (key >= keys.get(i) && key <= keys.get(i+1)) {
+                    keys.add(i, key)
+                    rids.add(i, rid)
+                }
+            }
+            if (key >= keys.get(keys.size() - 1)) {
+                //Add to list
+                keys.add(keys.size(), key)
+                rids.add(keys.size(), rid)
 
-        return;
+            }
+            if (keys.size() > order) {
+                l1Keys = keys.subList(0, order)
+                l1Rids = rids.subList(0, order)
+                l2Keys = keys.subList(order + 1, keys.size() + 1)
+                l2Rids = rids.subList(order + 1, rids.size() + 1)
+                newRoot = this.get(keys.get(order)) 
+                updateRoot(newRoot);
+                sync()
+            }
+        } else {
+            sync()
+            return;
+        }
     }
 
     /**
@@ -309,7 +352,12 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
-
+        if (children.isEmpty()):
+            LeafNode.remove(key); 
+        else:
+            int childIndex = numLessThanEqual(key, keys)
+            getChild(childIndex).remove(key)
+            sync()
         return;
     }
 
@@ -423,19 +471,34 @@ public class BPlusTree {
     // Iterator ////////////////////////////////////////////////////////////////
     private class BPlusTreeIterator implements Iterator<RecordId> {
         // TODO(proj2): Add whatever fields and constructors you want here.
-
+        LeafNode currNode = getLeftmostLeaf(root)
+        int currentIndex = 0;
+        int currSize = currNode.keys.size();
         @Override
         public boolean hasNext() {
             // TODO(proj2): implement
-
-            return false;
+            if (currentIndex >= currSize && currNode.rightSibling == Optional.empty()) {
+                return false;
+            }
+            return true;
         }
 
         @Override
         public RecordId next() {
             // TODO(proj2): implement
-
-            throw new NoSuchElementException();
+            //While 
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            if (currentIndex >= currSize) {
+                currNode = currNode.getRightSibling();
+                currentIndex = 1;
+                currSize = currNode.keys.size();
+                return currNode.get(0);
+            } else {
+                currentIndex += 1
+                return currNode.get(currentIndex-1);
+            }
         }
     }
 }
