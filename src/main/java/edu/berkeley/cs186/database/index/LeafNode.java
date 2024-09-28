@@ -147,18 +147,14 @@ class LeafNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
-        if (keys.contain(key)) {
-            return Optional.of(LeafNode.fromBytes(this.metadata, this.bufferManager, this.treeContext, this.pageNum));
-            }
-        else:
-            return Optional.empty(); 
+        return this;
     }
 
     // See BPlusNode.getLeftmostLeaf.
     @Override
     public LeafNode getLeftmostLeaf() {
         // TODO(proj2): implement
-        return Optional.of(LeafNode.fromBytes(this.metadata, this.bufferManager, this.treeContext, this.pageNum));
+        return this;
     }
 
     // See BPlusNode.put.
@@ -205,14 +201,14 @@ class LeafNode extends BPlusNode {
     @Override
     public void remove(DataBox key) {
         // TODO(proj2): implement
-        if (keys.contain(key)) {
+        if (keys.contains(key)) {
             keys.remove(key);
             rids.remove(rid);
-            sync()
+            sync();
             return;
         }
         else {
-            sync()
+            sync();
             return; 
         }
     }

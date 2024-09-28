@@ -81,19 +81,12 @@ class InnerNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
-        if (children.isEmpty()):
-            return LeafNode.get(key); 
-        else:
-            int childIndex = numLessThanEqual(key, keys)
-            getChild(childIndex).get(key)
-        return Optional.empty();
-    }
-
-    public LeafNode helper(DataBox key, ArrayList<>(keys), int i) {
-        if (key < keys.get(i)) {
-            
+        if (children.isEmpty()) {
+            return get(key);
+        } else {
+            int childIndex = numLessThanEqual(key, keys);
+            return getChild(childIndex).get(key);
         }
-
     }
 
     // See BPlusNode.getLeftmostLeaf.
@@ -101,12 +94,7 @@ class InnerNode extends BPlusNode {
     public LeafNode getLeftmostLeaf() {
         assert(children.size() > 0);
         // TODO(proj2): implement
-        if (children.isEmpty()) {
-            return LeafNode.getLeftmostLeaf()
-        } else {
-            return getChild(0).getLeftmostLeaf()
-        }
-        return Optional.empty();
+        return getChild(0).getLeftmostLeaf();
     }
 
     // See BPlusNode.put.

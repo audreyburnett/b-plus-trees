@@ -146,8 +146,11 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
-        nodeFound = root.get(key)
-        return Optional.of(RecordId(nodeFound.pageNum, nodeFound.entryNum));
+        LeafNode child = root.get(key);
+        if (!child.equals(Optional.empty())){
+            return child.getKey(key);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -204,7 +207,7 @@ public class BPlusTree {
         
         // TODO(proj2): Return a BPlusTreeIterator.
 
-        return Collections.emptyIterator();
+        return new BPlusTreeIterator();
 
     }
 
@@ -235,13 +238,18 @@ public class BPlusTree {
         typecheck(key);
         // TODO(proj4_integration): Update the following line
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
+        BPlusNode currNode;
         currNode = root.get(key);
-        numKey = key;
-        while(currNode == Optional.empty()) {
-            numKey++;
+        DataBox numKey = key;
+        while(key.compareTo(currNode.)) {
+            numKey = numKey + 1;
             currNode = currNode.get(numKey);
         }
-        while(currNode)
+        for(int i = 0; i < currNode.keys.size(); i++) {
+            if (currNode.keys.get(i).compareTo(key) >= 0) {
+                int keyIndex = i;
+            }
+        }
         BPlusTreeIterator<> iter = new BPlusTreeIterator();
         iter.currNode = currNode
         return BPlusTreeIterator()
@@ -471,13 +479,56 @@ public class BPlusTree {
     // Iterator ////////////////////////////////////////////////////////////////
     private class BPlusTreeIterator implements Iterator<RecordId> {
         // TODO(proj2): Add whatever fields and constructors you want here.
-        LeafNode currNode = getLeftmostLeaf(root)
-        int currentIndex = 0;
-        int currSize = currNode.keys.size();
+        LeafNode currLeaf;
+        Optional<LeafNode> currLeafOptional;
+        int currIndex;
+
+        //To deal with greater than or equal to
+        BPlusTreeIterator(DataBox key) {
+            currLeafOptional = Optional.of(root.get(key));
+            while (currLeafOptional.equals(Optional.empty())) {
+                LeafNode currLeaf = currLeafOptional.get();
+                if (currLeaf.getKeys().isEmpty()) {
+                    currLeafOptional = currLeaf.getRightSibling();
+                } else {
+                    for (int i = 0; i < currLeaf.getKeys().size(); i += 1) {
+                        DataBox k = currLeaf.getKeys().get(i);
+                        if (k.compareTo(key) >= 0) {
+                            currIndex = i;
+                            return;
+                        }
+                    }
+                }
+                for (int i = 0; i < currLeaf.getKeys().size(); i += 1) {
+                    DataBox k = currLeaf.getKeys().get(i);
+                    if (k.compareTo(key) >= 0) {
+                        currIndex = i;
+                        return;
+                    }
+                }
+                currIndex = -1;
+            }
+        }
+
+        //To deal with all
+        BPlusTreeIterator() {
+            currIndex = 0;
+            currLeafOptional = Optional.of(root.getLeftmostLeaf());
+            LeafNode currLeaf = currLeafOptional.get();
+            while (currLeafOptional.equals(Optional.empty()) && currLeaf.getKeys().isEmpty()) {
+                currLeafOptional = currLeaf.getRightSibling();
+                currLeaf = currLeafOptional.get();
+            }
+            currLeafOptional = Optional.of(currLeaf.getLeftmostLeaf());
+            if (currLeafOptional.equals(Optional.empty()) && currLeaf.getKeys().isEmpty()) {
+                currIndex = -1;
+            }
+        }
+
         @Override
         public boolean hasNext() {
             // TODO(proj2): implement
-            if (currentIndex >= currSize && currNode.rightSibling == Optional.empty()) {
+            if (currIndex == -1) {
                 return false;
             }
             return true;
@@ -490,15 +541,25 @@ public class BPlusTree {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            if (currentIndex >= currSize) {
-                currNode = currNode.getRightSibling();
-                currentIndex = 1;
-                currSize = currNode.keys.size();
-                return currNode.get(0);
+            int index = currIndex;
+            Optional<LeafNode> LeafOptional = currLeafOptional;
+            LeafNode currLeaf = currLeafOptional.get();
+            if (currIndex + 1 == currLeaf.getKeys().size()) {
+
+                while (currLeafOptional.equals(Optional.empty()) && currLeaf.getKeys().isEmpty()) {
+                    currLeafOptional = currLeaf.getRightSibling();
+                    if (currLeafOptional.equals(Optional.empty())) {
+                        currIndex = -1;
+                        break;
+                    }
+
+                    currLeaf = currLeafOptional.get();
+                }
+                currIndex = 0;
             } else {
-                currentIndex += 1
-                return currNode.get(currentIndex-1);
+                currIndex += 1;
             }
+            return currLeaf.getRids().get(index);
         }
     }
 }
